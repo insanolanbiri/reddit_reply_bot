@@ -66,7 +66,7 @@ class RedditReplyBot:
                     ):
                         if cls.DEBUG:
                             print(f"this is a comment from me: {comment.body}")
-                        if comment.score < -10:
+                        if comment.score < cls.DOWNVOTE_THRESHOLD:
                             comment.delete()
                 else:
                     i += 1
@@ -121,7 +121,7 @@ class ima_ninana(RedditReplyBot):
     BLACKLIST=["aile"]
     SUBREDDIT = "kgbtr+u_insanolanbiri+u_ima_ninana"
     MAX_WORDS = 12
-    DOWNVOTE_THRESHOLD = 4
+    DOWNVOTE_THRESHOLD = -4
     DEBUG = False
     DOWNVOTE_CHECK_INTERVAL = 100
     DOWNVOTE_CHECK_LIMIT = 1000
