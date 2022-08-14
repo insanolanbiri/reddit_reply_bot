@@ -1,0 +1,60 @@
+name: deploy pythonanywhere web app
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@v2
+
+      - name: make request for git pull
+        id: request1
+        uses: fjogeleit/http-request-action@v1
+        with:
+          method: 'POST'
+          url: 'https://www.pythonanywhere.com/api/v0/user/${{ secrets.USERNAME }}/consoles/${{ secrets.CONSOLE_ID }}/send_input/'
+          customHeaders: '{"Authorization": "Token ${{ secrets.API_TOKEN }}"}'
+          data: '{"input": "git pull\n"}'
+
+      - name: show response
+        run: echo ${{ steps.request1.outputs.response }}
+
+      - name: sleep for git pull
+        run: sleep 5
+
+      - name: make request for checking git pull status
+        id: request2
+        uses: fjogeleit/http-request-action@v1
+        with:
+          method: 'GET'
+          url: 'https://www.pythonanywhere.com/api/v0/user/${{ secrets.USERNAME }}/consoles/${{ secrets.CONSOLE_ID }}/get_latest_output/'
+          customHeaders: '{"Authorization": "Token ${{ secrets.API_TOKEN }}"}'
+        
+      - name: check git pull status
+        run: echo "EXPECTED_TEXT=$(echo ${GITHUB_SHA} | cut -c1-7)\r\nFast-forward\r\n" >> $GITHUB_ENV
+
+      - name: show success
+        if: contains(steps.request2.outputs.response, env.EXPECTED_TEXT)
+        run: echo "git pull successful"
+
+      - name: show failure
+        if: ${{ false == contains(steps.request2.outputs.response, env.EXPECTED_TEXT) }}
+        run: echo "git pull fast-forward merge failed" 1>&2 ; exit 1
+
+      - name: make request for web app reload
+        id: request3
+        uses: fjogeleit/http-request-action@v1
+        with:
+          method: 'POST'
+          url: 'https://www.pythonanywhere.com/api/v0/user/${{ secrets.USERNAME }}/webapps/${{ secrets.DOMAIN_NAME }}/reload/'
+          customHeaders: '{"Authorization": "Token ${{ secrets.API_TOKEN }}"}'
+          preventFailureOnNoResponse: 'true'
+          timeout: '60000'
+          ignoreStatusCodes: '409'
+
+      - name: show response
+        run: echo ${{ steps.request3.outputs.response }}
