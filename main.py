@@ -18,6 +18,7 @@ class RedditReplyBot:
     MAX_WORDS = None
     DOWNVOTE_THRESHOLD = -5
     SUBREDDIT = ""
+    BLACKLIST=[]
     DEBUG = False
     DOWNVOTE_CHECK_INTERVAL = 10
     DOWNVOTE_CHECK_LIMIT = 100
@@ -95,6 +96,9 @@ class RedditReplyBot:
 
         text = f"{data[0]} {data[1]}" if data[0] != "" else data[1]
 
+        if any(i in text for i in cls.BLACKLIST):
+            return
+
         reply = [i[1] for i in cls.REPLY_DICT.items() if i[0] in text.split()]
 
         if len(reply) == 1:
@@ -108,13 +112,16 @@ class ima_ninana(RedditReplyBot):
         "nereyi": "ananın amını",
         "nereye": "ananın amına",
         "nereden": "ananın amından",
+        "nerden": "ananın amından",
         "nerede": "ananın amında",
+        "nerde": "ananın amında",
         "neyi": "ananın amını",
         "neden": "ananın amından dolayı",
     }
+    BLACKLIST=["aile"]
     SUBREDDIT = "kgbtr+u_insanolanbiri+u_ima_ninana"
-    MAX_WORDS = 10
-    DOWNVOTE_THRESHOLD = 10
+    MAX_WORDS = 12
+    DOWNVOTE_THRESHOLD = 4
     DEBUG = False
     DOWNVOTE_CHECK_INTERVAL = 100
     DOWNVOTE_CHECK_LIMIT = 1000
